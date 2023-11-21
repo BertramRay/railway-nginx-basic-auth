@@ -8,7 +8,9 @@ ARG PASSWORD=password
 RUN echo "proxy_pass: $PROXY_PASS\nport: $PORT\nusername: $USERNAME\npassword: $PASSWORD"
 
 COPY ./nginx.conf.template /etc/nginx/nginx.conf.template
-RUN envsubst '$PROXY_PASS $PORT' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
+COPY ./configure_nginx.sh /etc/nginx/configure_nginx.sh
+RUN chmod +x /etc/nginx/configure_nginx.sh
+RUN /etc/nginx/configure_nginx.sh
 
 
 ENV USERNAME=$USERNAME
