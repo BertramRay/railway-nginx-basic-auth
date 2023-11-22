@@ -4,6 +4,8 @@ ARG PROXY_PASS=http://host.docker.internal:3000
 ARG PORT=4000
 ARG USERNAME=user
 ARG PASSWORD=password
+ARG SERVER_NAME_1=_
+ARG PROXY_PASS_1=http://host.docker.internal:3000
 
 RUN echo "proxy_pass: $PROXY_PASS\nport: $PORT\nusername: $USERNAME\npassword: $PASSWORD"
 
