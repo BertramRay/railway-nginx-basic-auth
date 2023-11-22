@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Define the placeholder tag for the server blocks in nginx configuration template
 SERVER_BLOCKS_PLACEHOLDER="# SERVER_BLOCKS_PLACEHOLDER"

@@ -1,5 +1,7 @@
 FROM nginx:alpine AS runtime
 
+RUN apk add --no-cache bash
+
 ARG PROXY_PASS=http://host.docker.internal:3000
 ARG PORT=4000
 ARG USERNAME=user
