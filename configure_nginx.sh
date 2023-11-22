@@ -45,8 +45,17 @@ while read -r line; do
   fi
 done < <(env)
 
+echo "Generated server blocks:"
+echo "$server_blocks"
+
+echo "Before sed replacement:"
+cat /etc/nginx/nginx.conf.template
+
 # Replace the SERVER_BLOCKS_PLACEHOLDER in nginx configuration template with the generated server blocks
 sed -i "s#${SERVER_BLOCKS_PLACEHOLDER}#${server_blocks}#g" /etc/nginx/nginx.conf.template
+
+echo "After sed replacement:"
+cat /etc/nginx/nginx.conf.template
 
 # Use envsubst to replace the remaining environment variables
 envsubst '$PORT' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
