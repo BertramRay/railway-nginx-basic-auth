@@ -1,63 +1,52 @@
 #!/bin/bash
 
-# Define the placeholder tag for the server blocks in nginx configuration template
-SERVER_BLOCKS_PLACEHOLDER="# SERVER_BLOCKS_PLACEHOLDER"
+# 存储 nginx.conf 静态内容的变量
+nginx_conf="worker_processes 1;
 
-# Define a variable to hold the generated server blocks
-server_blocks=""
+events {
+  worker_connections 1024;
+}
 
-# Loop through all environment variables
-while read -r line; do
-  # Extract the key and value of the environment variable
-  env_key=$(echo $line | cut -d '=' -f 1)
-  env_value=$(echo $line | cut -d '=' -f 2)
+http {"
 
-  # Check if the environment variable matches the pattern server_name_xxx
+# 循环遍历环境变量并生成 server block
+while IFS='=' read -r env_key env_value; do
   if [[ $env_key == SERVER_NAME_* ]]; then
-    # Extract the index xxx
-    index=${env_key#SERVER_NAME_}
-
-    # Check if the corresponding proxy_pass_xxx environment variable exists
+    index="${env_key#SERVER_NAME_}"
     proxy_pass_var="PROXY_PASS_$index"
-    proxy_pass_value=$(printenv $proxy_pass_var)
+    proxy_pass_value="${!proxy_pass_var}"
 
-    # If it exists, build a new server block
     if [ ! -z "$proxy_pass_value" ]; then
-      server_block="\
-    server {\n\
-        listen ${PORT};\n\
-        server_name $env_value;\n\n\
-        location / {\n\
-            auth_basic \"Restricted\";\n\
-            auth_basic_user_file /etc/nginx/.htpasswd;\n\n\
-            proxy_set_header X-Real-IP \$remote_addr;\n\
-            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;\n\
-            proxy_set_header Host \$http_host;\n\
-            proxy_set_header X-Nginx-Proxy true;\n\
-            proxy_http_version 1.1;\n\
-            proxy_pass $proxy_pass_value;\n\
-        }\n\
-    }\n"
+      # 将 server block 追加到 nginx 配置字符串中
+      nginx_conf+="
+    server {
+        listen ${PORT};
+        server_name $env_value;
 
-      # Append the new server block to the server blocks string
-      server_blocks+="$server_block\n"
+        location / {
+            auth_basic \"Restricted\";
+            auth_basic_user_file /etc/nginx/.htpasswd;
+
+            proxy_set_header X-Real-IP \$remote_addr;
+            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+            proxy_set_header Host \$http_host;
+            proxy_set_header X-Nginx-Proxy true;
+            proxy_http_version 1.1;
+            proxy_pass $proxy_pass_value;
+        }
+    }"
     fi
   fi
 done < <(env)
 
-echo "Generated server blocks:"
-echo "$server_blocks"
+# 结束 http {} 块并完成 nginx 配置字符串
+nginx_conf+="
 
-echo "Before sed replacement:"
-cat /etc/nginx/nginx.conf.template
+}"
+echo "Generated nginx.conf:"
+echo "$nginx_conf"
 
-# Replace the SERVER_BLOCKS_PLACEHOLDER in nginx configuration template with the generated server blocks
-printf "%s" "$server_blocks" > /tmp/server_blocks.tmp
-sed -i "s#${SERVER_BLOCKS_PLACEHOLDER}#$(< /tmp/server_blocks.tmp)#g" /etc/nginx/nginx.conf.template
-# sed -i "s#${SERVER_BLOCKS_PLACEHOLDER}#${server_blocks}#g" /etc/nginx/nginx.conf.template
-
-echo "After sed replacement:"
-cat /etc/nginx/nginx.conf.template
-
-# Use envsubst to replace the remaining environment variables
-envsubst '$PORT' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
+# 使用 envsubst 替换 PORT 变量
+echo "$nginx_conf" | envsubst '${PORT}' > /etc/nginx/nginx.conf
+echo "Generated nginx.conf from environment variables:"
+cat /etc/nginx/nginx.conf
