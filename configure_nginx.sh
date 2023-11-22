@@ -52,7 +52,9 @@ echo "Before sed replacement:"
 cat /etc/nginx/nginx.conf.template
 
 # Replace the SERVER_BLOCKS_PLACEHOLDER in nginx configuration template with the generated server blocks
-sed -i "s#${SERVER_BLOCKS_PLACEHOLDER}#${server_blocks}#g" /etc/nginx/nginx.conf.template
+printf "%s" "$server_blocks" > /tmp/server_blocks.tmp
+sed -i "s#${SERVER_BLOCKS_PLACEHOLDER}#$(< /tmp/server_blocks.tmp)#g" /etc/nginx/nginx.conf.template
+# sed -i "s#${SERVER_BLOCKS_PLACEHOLDER}#${server_blocks}#g" /etc/nginx/nginx.conf.template
 
 echo "After sed replacement:"
 cat /etc/nginx/nginx.conf.template
