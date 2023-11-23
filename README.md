@@ -1,10 +1,12 @@
 ﻿# Basic Auth Nginx Reverse Proxy for Railway.app's Services
 
 This is for web applications running in railway.app which need a basic auth without modifing source code.
+![image](https://github.com/BertramRay/railway-nginx-basic-auth/assets/42647595/5c3c12de-9615-45a4-a7b8-651425f8353a)
+
 
 You can add to railway easily by this button.
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/bYH8Xt?referralCode=WSv72h)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/zx4xv3?referralCode=GLhtH9)
 
 ## Usage
 
