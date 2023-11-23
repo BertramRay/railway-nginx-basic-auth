@@ -6,6 +6,10 @@ ARG PROXY_PASS=http://host.docker.internal:3000
 ARG PORT=4000
 ARG USERNAME=user
 ARG PASSWORD=password
+ARG SERVER_NAME_1=nginx-basic-auth-production-1b4a.up.railway.app
+ARG PROXY_PASS_1=http://aws-ses-template-manager.railway.internal:3333
+ENV SERVER_NAME_1=$SERVER_NAME_1
+ENV PROXY_PASS_1=$PROXY_PASS_1
 
 RUN echo "proxy_pass: $PROXY_PASS\nport: $PORT\nusername: $USERNAME\npassword: $PASSWORD"
 
