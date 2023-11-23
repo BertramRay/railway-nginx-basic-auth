@@ -9,35 +9,41 @@ events {
 
 http {"
 
-# 循环遍历环境变量并生成 server block
-while IFS='=' read -r env_key env_value; do
-  if [[ $env_key == SERVER_NAME_* ]]; then
-    index="${env_key#SERVER_NAME_}"
-    proxy_pass_var="PROXY_PASS_$index"
-    proxy_pass_value="${!proxy_pass_var}"
+# 获取 SERVER_NAME 和 PROXY_PASS 环境变量
+server_names=$SERVER_NAME
+proxy_passes=$PROXY_PASS
 
-    if [ ! -z "$proxy_pass_value" ]; then
-      # 将 server block 追加到 nginx 配置字符串中
-      nginx_conf+="
-    server {
-        listen ${PORT};
-        server_name $env_value;
+# 转换为数组
+IFS=',' read -ra server_name_array <<< "$server_names"
+IFS=',' read -ra proxy_pass_array <<< "$proxy_passes"
 
-        location / {
-            auth_basic \"Restricted\";
-            auth_basic_user_file /etc/nginx/.htpasswd;
+# 检查数组长度是否匹配
+if [ ${#server_name_array[@]} -ne ${#proxy_pass_array[@]} ]; then
+  echo "Error: The number of server names and proxy pass values do not match."
+  exit 1
+fi
 
-            proxy_set_header X-Real-IP \$remote_addr;
-            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-            proxy_set_header Host \$http_host;
-            proxy_set_header X-Nginx-Proxy true;
-            proxy_http_version 1.1;
-            proxy_pass $proxy_pass_value;
-        }
-    }"
-    fi
-  fi
-done < <(env)
+# 循环遍历服务器名称和代理传递值数组并生成 server blocks
+for ((i = 0; i < ${#server_name_array[@]}; i++)); do
+  # 将 server block 追加到 nginx 配置字符串中
+  nginx_conf+="
+  server {
+      listen ${PORT};
+      server_name ${server_name_array[$i]};
+
+      location / {
+          auth_basic \"Restricted\";
+          auth_basic_user_file /etc/nginx/.htpasswd;
+
+          proxy_set_header X-Real-IP \$remote_addr;
+          proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+          proxy_set_header Host \$http_host;
+          proxy_set_header X-Nginx-Proxy true;
+          proxy_http_version 1.1;
+          proxy_pass ${proxy_pass_array[$i]};
+      }
+  }"
+done
 
 # 结束 http {} 块并完成 nginx 配置字符串
 nginx_conf+="
