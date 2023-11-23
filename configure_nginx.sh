@@ -7,7 +7,10 @@ events {
   worker_connections 1024;
 }
 
-http {"
+http {
+    # Increase the bucket size for server names hash tables
+    server_names_hash_bucket_size 128;
+"
 
 # Split SERVER_NAME and PROXY_PASS into arrays
 IFS=',' read -ra server_name_array <<< "${SERVER_NAME}"
