@@ -2,7 +2,7 @@ FROM nginx:alpine AS runtime
 
 RUN apk add --no-cache bash
 
-ARG SERVER_NAME=nginx-basic-auth-production-1b4a.up.railway.app
+ARG SERVER_NAME=_
 ARG PROXY_PASS=http://host.docker.internal:3000
 ARG PORT=4000
 ARG USERNAME=user
@@ -13,7 +13,6 @@ RUN echo "server_name: $SERVER_NAME\nproxy_pass: $PROXY_PASS\nport: $PORT\nusern
 COPY ./configure_nginx.sh /etc/nginx/configure_nginx.sh
 RUN chmod +x /etc/nginx/configure_nginx.sh
 RUN /etc/nginx/configure_nginx.sh
-
 
 ENV USERNAME=$USERNAME
 ENV PASSWORD=$PASSWORD
